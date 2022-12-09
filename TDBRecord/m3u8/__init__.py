@@ -54,13 +54,10 @@ def worker(user: str, platform: str) -> None:
     pass
 
 def stream(user: str, platform: str) -> str:
-    return _streamget(urlstore[platform].format(user=user), platform)
-
-def _streamget(url: str, platform: str) -> str:
     if tdbra.conf["remote_streamlink"] and platform == "twitch":
-        return get(f"{tdbra.conf['remote_streamlink']}/{url.split('/')[-1]}?quality=best").text
+        return get(f"{tdbra.conf['remote_streamlink']}/{user}?quality=best").text
     else:
-        return session.streams(url)["best"].url
+        return session.streams(urlstore[platform].format(user=user))["best"].url
 
 def checkStatus(user: str, platform: str) -> bool:
     if session.streams(urlstore[platform].format(user=user)):
