@@ -1,0 +1,4 @@
+requests
+prompt_toolkit
+streamlink
+click
