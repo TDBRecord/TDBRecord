@@ -17,21 +17,35 @@ def worker(user: str, platform: str) -> None:
     Standalone video downloader
     """
     logger = tdbra.data[f"{user}.{platform}"]["logger"]
+    logger.setLevel(tdbra.logger.level)
     downloadPath = tdbra.downloadPath / Path(f"{user}.{platform}/")
     downloadPath.mkdir(parents=True, exist_ok=True)
     filename = f"{platform}.{user}.{time.strftime('%y%m%d.%H%M%S')}.mp4"
     m3uPlaylistUri = stream(user, platform)
-
     logger.info("FFMPEG Downloader started.")
+
+    while True:
+        m3ud = get(m3uPlaylistUri)
+        if "twitch-ad-quartile" in m3ud.text:
+            logger.debug("Waiting for AD to start...")
+            time.sleep(2)
+            continue
+        break
+
+    logger.info("AD finished. Start recording...")
+    logger.debug(f"{tdbra.conf['ffmpeg']} -y -hide_banner -loglevel error -i {m3uPlaylistUri} -c copy {downloadPath}/{filename}")
     ffmpeg = Popen([
-        "ffmpeg",
+        tdbra.conf["ffmpeg"],
         "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
         "-i",
         m3uPlaylistUri,
         "-c",
         "copy",
         f"{downloadPath}/{filename}"
-    ], stdin=PIPE, stdout=DEVNULL, stderr=PIPE)
+    ], stdin=PIPE)
     while True:
         if tdbra.data[f"{user}.{platform}"]["exit"]:
             # send "q" to ffmpeg

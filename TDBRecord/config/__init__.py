@@ -1,9 +1,12 @@
 import TDBRecord as tdbra
 
 import pathlib
+import subprocess
 
 DEFAULT_CONFIG = {
     "remote_streamlink": "", # Remote streamlink server, if not set, use local streamlink e.g. "http://www.example.com/api/get"
+    "downloadPath": "/mnt/download/",
+    "ffmpeg": "ffmpeg", # ffmpeg path, if not set, use PATH ffmpeg
     "users": [
         {
             "name": "ExampleUser1",
@@ -14,7 +17,6 @@ DEFAULT_CONFIG = {
             "platform": "twitch | afreecatv"
         }
     ],
-    "downloadPath": "/mnt/download/"
 }
 
 PLATFORMS = ["twitch", "afreecatv"]
@@ -40,4 +42,18 @@ def check_config():
         raise ValueError("Download path not found in config file")
     tdbra.downloadPath = pathlib.Path(tdbra.conf["downloadPath"])
     tdbra.downloadPath.mkdir(parents=True, exist_ok=True)
+
+    if not tdbra.conf["ffmpeg"]:
+        tdbra.conf["ffmpeg"] = "ffmpeg"
+    
+    # check ffmpeg is installed
+    try:
+        subprocess.run([tdbra.conf["ffmpeg"], "-version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        tdbra.logger.error("ffmpeg not found")
+        raise ValueError("ffmpeg not found")
+    except FileNotFoundError:
+        tdbra.logger.error("ffmpeg not found")
+        raise ValueError("ffmpeg not found")
+
     pass
