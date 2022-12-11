@@ -74,7 +74,11 @@ def stream(user: str, platform: str) -> str:
         return session.streams(urlstore[platform].format(user=user))["best"].url
 
 def checkStatus(user: str, platform: str) -> bool:
-    if session.streams(urlstore[platform].format(user=user)):
-        return True
-    else:
+    try:
+        if session.streams(urlstore[platform].format(user=user)):
+            return True
+        else:
+            return False
+    except:
+        tdbra.logger.error(f"Failed to check status of {user}.{platform}")
         return False
