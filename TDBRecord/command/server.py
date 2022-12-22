@@ -35,12 +35,12 @@ def start():
             if len(users) == 0:
                 tdbra.logger.info("No user is recording")
                 continue
-            tdbra.logger.info("Users recording:", users)
+            tdbra.logger.info("Users recording:", str(users))
         elif command == "users":
             users = []
             for user in tdbra.conf["users"]:
                 users.append(user["name"])
-            tdbra.logger.info("Users:", users)
+            tdbra.logger.info("Users:", str(users))
         elif command == "help":
             tdbra.logger.info("Available commands: exit, status, users, help")
         else:
