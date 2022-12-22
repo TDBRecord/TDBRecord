@@ -5,7 +5,7 @@ import logging
 import click
 import json
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 @click.version_option(prog_name="TDBRecord", version=__version__)
 @click.group()

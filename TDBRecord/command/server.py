@@ -20,8 +20,9 @@ def start():
             while len(tdbra.data) > 0:
                 time.sleep(0.4)
             break
-
-        if command == "exit":
+        if command == "":
+            continue
+        elif command == "exit":
             for user in list(tdbra.data.keys()):
                 tdbra.data[user]["exit"] = True
             while len(tdbra.data) > 0:
@@ -36,7 +37,10 @@ def start():
                 continue
             tdbra.logger.info("Users recording:", users)
         elif command == "users":
-            tdbra.logger.info("Users:", tdbra.conf["users"])
+            users = []
+            for user in tdbra.conf["users"]:
+                users.append(user["name"])
+            tdbra.logger.info("Users:", users)
         elif command == "help":
             tdbra.logger.info("Available commands: exit, status, users, help")
         else:
