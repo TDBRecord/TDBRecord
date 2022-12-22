@@ -25,6 +25,11 @@ def worker(user: str, platform: str) -> None:
     logger.info("FFMPEG Downloader started.")
 
     while True:
+        if tdbra.data[f"{user}.{platform}"]["exit"]:
+            logger.info("FFMPEG Downloader stopped.")
+            del(tdbra.data[f"{user}.{platform}"])
+            return
+
         m3ud = get(m3uPlaylistUri)
         if "twitch-ad-quartile" in m3ud.text:
             logger.debug("Waiting for AD to start...")
@@ -50,7 +55,7 @@ def worker(user: str, platform: str) -> None:
         if tdbra.data[f"{user}.{platform}"]["exit"]:
             # send "q" to ffmpeg
             ffmpeg.communicate(input=b"q")
-            for i in range(10):
+            for i in range(6):
                 if ffmpeg.poll() is not None:
                     logger.info("FFMPEG Downloader finished with status 0.")
                     del(tdbra.data[f"{user}.{platform}"])
