@@ -18,12 +18,15 @@ def worker(user: str, platform: str) -> None:
     """
     logger = tdbra.data[f"{user}.{platform}"]["logger"]
     logger.setLevel(tdbra.logger.level)
-    downloadPath = tdbra.downloadPath / Path(f"{user}.{platform}/")
+    downloadPath = tdbra.downloadPath / f"{user}.{platform}/"
     downloadPath.mkdir(parents=True, exist_ok=True)
-    filename = f"{platform}.{user}.{time.strftime('%y%m%d.%H%M%S')}.mp4"
+    filename = f"{platform}.{user}.{time.strftime('%y%m%d.%H%M%S')}"
+
+    downloadFullPath = downloadPath / f"{filename}.mp4"
     m3uPlaylistUri = stream(user, platform)
     logger.info("FFMPEG Downloader started.")
 
+    # Downloader
     while True:
         if tdbra.data[f"{user}.{platform}"]["exit"]:
             logger.info("FFMPEG Downloader stopped.")
@@ -38,7 +41,8 @@ def worker(user: str, platform: str) -> None:
         break
 
     logger.info("AD finished. Start recording...")
-    logger.debug(f"{tdbra.conf['ffmpeg']} -y -hide_banner -loglevel error -i {m3uPlaylistUri} -c copy {downloadPath}/{filename}")
+    logger.debug(f"{tdbra.conf['ffmpeg']} -y -hide_banner -loglevel error -i {m3uPlaylistUri} -c copy {downloadFullPath}")
+    tdbra.downloadPath.mkdir(parents=True, exist_ok=True)
     ffmpeg = Popen([
         tdbra.conf["ffmpeg"],
         "-y",
@@ -49,28 +53,30 @@ def worker(user: str, platform: str) -> None:
         m3uPlaylistUri,
         "-c",
         "copy",
-        f"{downloadPath}/{filename}"
+        downloadFullPath
     ], stdin=PIPE)
     while True:
         if tdbra.data[f"{user}.{platform}"]["exit"]:
-            # send "q" to ffmpeg
             ffmpeg.communicate(input=b"q")
             for i in range(6):
                 if ffmpeg.poll() is not None:
-                    logger.info("FFMPEG Downloader finished with status 0.")
+                    logger.info(f"FFMPEG Downloader finished with status {ffmpeg.poll()}.")
+                    if downloadFullPath.exists(): downloadFullPath.unlink()
                     del(tdbra.data[f"{user}.{platform}"])
                     return
                 time.sleep(1)
             ffmpeg.kill()
             logger.warning("FFMPEG Downloader killed.")
-            break
+            if downloadFullPath.exists(): downloadFullPath.unlink()
+            del(tdbra.data[f"{user}.{platform}"])
+            return
         if ffmpeg.poll() is not None:
-            logger.info("FFMPEG Downloader finished with status 0.")
+            logger.info(f"FFMPEG Downloader finished with status {ffmpeg.poll()}.")
             tdbra.data[f"{user}.{platform}"]["end"] = True
             break
         time.sleep(1)
+
     del(tdbra.data[f"{user}.{platform}"])
-    pass
 
 def stream(user: str, platform: str) -> str:
     if tdbra.conf["remote_streamlink"] and platform == "twitch":

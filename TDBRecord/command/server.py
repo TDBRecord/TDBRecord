@@ -1,6 +1,7 @@
 import TDBRecord as tdbra
 
 from threading import Thread
+import logging
 import time
 
 def start():
@@ -19,14 +20,17 @@ def start():
                 tdbra.data[user]["exit"] = True
             while len(tdbra.data) > 0:
                 time.sleep(0.4)
+            tdbra.downloadPath.rmdir()
             break
         if command == "":
             continue
-        elif command == "exit":
+        tdbra.logger.debug(f"> {command}")
+        if command == "exit":
             for user in list(tdbra.data.keys()):
                 tdbra.data[user]["exit"] = True
             while len(tdbra.data) > 0:
                 time.sleep(0.4)
+            tdbra.downloadPath.rmdir()
             break
         elif command == "status":
             users = []
@@ -41,10 +45,22 @@ def start():
             for user in tdbra.conf["users"]:
                 users.append(f"{user['name']}.{user['platform']}")
             tdbra.logger.info("Users: " + str(users))
+        elif command == "reload":
+            tdbra.config.reload()
+        elif command == "debug":
+            if tdbra.logger.level == logging.DEBUG:
+                tdbra.logger.setLevel(logging.INFO)
+                tdbra.logger.info("Debug mode disabled")
+            else:
+                tdbra.logger.setLevel(logging.DEBUG)
+                tdbra.logger.info("Debug mode enabled")
         elif command == "help":
-            tdbra.logger.info("Available commands: exit, status, users, help")
+            tdbra.logger.info("Available commands: exit, status, users, debug, reload, help")
         else:
-            print(exec(command))
+            try:
+                print(exec(command))
+            except Exception as e:
+                print(e)
     pass
 
 def statusChecker():

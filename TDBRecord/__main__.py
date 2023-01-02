@@ -5,7 +5,7 @@ import logging
 import click
 import json
 
-__version__ = "1.0.6"
+__version__ = "1.1.0-pre10"
 
 @click.version_option(prog_name="TDBRecord", version=__version__)
 @click.group()
@@ -23,10 +23,17 @@ def start(debug, config, logfile):
     """
     Start TDBRecord server for multiple users.
     """
+    tdbra.confPath = config
     if debug: tdbra.logger.setLevel(logging.DEBUG)
-    tdbra.conf = json.loads(config.read_text())
+    tdbra.conf = json.loads(tdbra.confPath.read_text())
 
-    tdbra.logger.addHandler(logging.FileHandler(logfile))
+    tdbra.logFilePath = logfile
+    tdbra.logger.addHandler(logging.FileHandler(tdbra.logFilePath))
+    tdbra.logger.handlers[1].setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s # %(message)s'))
+    tdbra.logger.handlers[1].setLevel(logging.DEBUG)
+    logging.getLogger("streamlink.plugins.afreeca").addHandler(logging.FileHandler(tdbra.logFilePath))
+    logging.getLogger("streamlink.plugins.afreeca").handlers[1].setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s - afreecatv # %(message)s'))
+    logging.getLogger("streamlink.plugins.afreeca").handlers[1].setLevel(logging.INFO)
     tdbra.logger.info("TDBRecord started!")
 
     tdbra.config.check_config()
@@ -34,8 +41,10 @@ def start(debug, config, logfile):
 
 @main.command()
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-@click.option("--remote-streamlink", is_flag=True, help="Use remote streamlink")
-@click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download file", default="download/")
+@click.option("--remote-streamlink", help="Remote streamlink Url", default="")
+@click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download folder", default=".")
+@click.option("--save-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Save folder", default="download/")
+@click.option("--ffmpeg", type=str, help="FFmpeg path", default="ffmpeg")
 @click.argument(
     "user",
     type=str,
@@ -46,13 +55,18 @@ def start(debug, config, logfile):
     type=str,
     required=True,
 )
-def record(debug, user, platform, remote_streamlink, download):
+def record(debug, user, platform, remote_streamlink, download_path, save_path, ffmpeg):
     """
     Standalone record command. Only record one user.
     """
+
     if debug: tdbra.loglevel = logging.DEBUG
-    tdbra.conf["remote_streamlink"] = remote_streamlink
-    tdbra.downloadPath = download.resolve()
+    if remote_streamlink: tdbra.conf["remote_streamlink"] = remote_streamlink
+    if ffmpeg: tdbra.conf["ffmpeg"] = ffmpeg
+    else: tdbra.conf["ffmpeg"] = "ffmpeg"
+
+    if download_path: tdbra.downloadPath = download_path
+    tdbra.savePath = save_path
     tdbra.command.record(user, platform)
 
 @main.command()

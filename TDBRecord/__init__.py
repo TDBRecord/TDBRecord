@@ -11,6 +11,7 @@ import logging
 streamlink = Streamlink()
 psession = PromptSession()
 input = psession.prompt
+print = print_formatted_text
 
 # Logging
 class PromptHandler(logging.StreamHandler):
@@ -18,17 +19,22 @@ class PromptHandler(logging.StreamHandler):
         msg = self.format(record)
         print_formatted_text(msg)
 
+logFilePath = Path("record.log")
 logger = logging.getLogger("TDBRecord")
 logger.handlers = [PromptHandler()]
 logger.handlers[0].setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s # %(message)s'))
 lm = "[{user}.{platform}] {msg}"
 logger.setLevel(logging.INFO)
+logging.getLogger("streamlink.plugins.afreeca").handlers = [PromptHandler()]
+logging.getLogger("streamlink.plugins.afreeca").handlers[0].setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s - afreecatv # %(message)s'))
 
 def create_logger(name: str, platform: str) -> logging.Logger:
     ulogger = logging.getLogger(name)
-    ulogger.handlers = [PromptHandler()]
-    ulogger.handlers[0].setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s - [{user}.{platform}] # %(message)s'.format(user=name, platform=platform)))
+    ulogger.handlers = [PromptHandler(), logging.FileHandler(logFilePath)]
+    for handler in ulogger.handlers:
+        handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s - [{user}.{platform}] # %(message)s'.format(user=name, platform=platform)))
     ulogger.setLevel(logger.level)
+    ulogger.handlers[1].setLevel(logging.DEBUG)
     ulogger.propagate = False
     return ulogger
 
@@ -39,18 +45,8 @@ def create_data(user: str, platform: str, thread = None) -> dict:
         "thread": thread,
     }
 
-
-
-
 conf = {}
 data = {}
+confPath = Path("config.json")
 downloadPath = Path(".")
-
-""" data
-{
-    "user.platform": {
-        "exit": false,
-        "logger": logger,
-    }
-}
-"""
+savePath = Path(".")
