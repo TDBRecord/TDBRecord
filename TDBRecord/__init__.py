@@ -12,7 +12,7 @@ streamlink = Streamlink()
 psession = PromptSession()
 input = psession.prompt
 print = print_formatted_text
-
+gc = None
 # Logging
 class PromptHandler(logging.StreamHandler):
     def emit(self, record):

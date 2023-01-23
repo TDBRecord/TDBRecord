@@ -2,9 +2,8 @@ import TDBRecord as tdbra
 
 import pathlib
 import subprocess
-from tempfile import gettempdir
-from time import time
 import json
+from importlib import import_module
 
 DEFAULT_CONFIG = {
     "remote_streamlink": "", # Remote streamlink server, if not set, use local streamlink e.g. "http://www.example.com/api/get"
@@ -58,11 +57,15 @@ def check_config(conf: dict = {}):
     if not conf["ffmpeg"]:
         conf["ffmpeg"] = "ffmpeg"
     
-    if "gdc" in conf:
-        import gdc
-        tdbra.gdc = gdc
-        
-    
+    if "gc" in conf:
+        try:
+            gc = import_module(conf["gc"])
+        except ImportError:
+            tdbra.logger.error("Cannot import gc module")
+            raise ValueError("Cannot import gc module")
+        tdbra.gc = gc
+        tdbra.ls = gc.ls(tdbra.logger)
+
     # check ffmpeg is installed
     try:
         subprocess.run([conf["ffmpeg"], "-version"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
