@@ -43,7 +43,7 @@ def worker(user: str, platform: str) -> None:
     logger.info("AD finished. Start recording...")
     logger.debug(f"{tdbra.conf['ffmpeg']} -y -hide_banner -loglevel error -i {m3uPlaylistUri} -c copy {downloadFullPath}")
     tdbra.downloadPath.mkdir(parents=True, exist_ok=True)
-    ffmpeg = Popen([
+    command = [
         tdbra.conf["ffmpeg"],
         "-y",
         "-hide_banner",
@@ -54,7 +54,10 @@ def worker(user: str, platform: str) -> None:
         "-c",
         "copy",
         downloadFullPath
-    ], stdin=PIPE)
+    ]
+    if tdbra.conf["proxy"]:
+        command.extend(["-http_proxy", tdbra.conf["proxy"]])
+    ffmpeg = Popen(command, stdin=PIPE)
     while True:
         if tdbra.data[f"{user}.{platform}"]["exit"]:
             ffmpeg.communicate(input=b"q")

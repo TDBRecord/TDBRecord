@@ -76,6 +76,11 @@ def check_config(conf: dict = {}):
         tdbra.logger.error("ffmpeg not found")
         raise ValueError("ffmpeg not found")
     
+    if "proxy" in conf:
+        conf["proxy"] = conf["proxy"].strip()
+    else:
+        conf["proxy"] = None
+    
     if tdbr: 
         tdbra.conf = conf
         tdbra.downloadPath = downloadPath
