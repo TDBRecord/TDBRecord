@@ -5,7 +5,7 @@ import logging
 import click
 import json
 
-__version__ = "1.1.0"
+__version__ = "1.1.4"
 
 @click.version_option(prog_name="TDBRecord", version=__version__)
 @click.group()
@@ -42,8 +42,7 @@ def start(debug, config, logfile):
 @main.command()
 @click.option("--debug", is_flag=True, help="Enable debug mode")
 @click.option("--remote-streamlink", help="Remote streamlink Url", default="")
-@click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download folder", default=".")
-@click.option("--save-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Save folder", default="download/")
+@click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download folder", default="download/")
 @click.option("--ffmpeg", type=str, help="FFmpeg path", default="ffmpeg")
 @click.argument(
     "user",
@@ -55,7 +54,7 @@ def start(debug, config, logfile):
     type=str,
     required=True,
 )
-def record(debug, user, platform, remote_streamlink, download_path, save_path, ffmpeg):
+def record(debug, user, platform, remote_streamlink, download_path, ffmpeg):
     """
     Standalone record command. Only record one user.
     """
@@ -66,7 +65,6 @@ def record(debug, user, platform, remote_streamlink, download_path, save_path, f
     else: tdbra.conf["ffmpeg"] = "ffmpeg"
 
     if download_path: tdbra.downloadPath = download_path
-    tdbra.savePath = save_path
     tdbra.command.record(user, platform)
 
 @main.command()

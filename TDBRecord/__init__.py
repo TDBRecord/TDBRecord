@@ -48,5 +48,4 @@ def create_data(user: str, platform: str, thread = None) -> dict:
 conf = {}
 data = {}
 confPath = Path("config.json")
-downloadPath = Path(".")
-savePath = Path(".")
+downloadPath = Path("download/")

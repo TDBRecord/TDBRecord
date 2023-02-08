@@ -47,6 +47,10 @@ def check_config(conf: dict = {}):
             tdbra.logger.error("User platform not found in config file")
             raise ValueError("User platform not found in config file")
     
+    if not "remote_streamlink" in conf:
+        conf["remote_streamlink"] = ""
+
+
     if not conf["downloadPath"]:
         tdbra.error("Download path not found in config file")
         raise ValueError("Download path not found in config file")

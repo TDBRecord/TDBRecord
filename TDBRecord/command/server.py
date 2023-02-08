@@ -20,7 +20,6 @@ def start():
                 tdbra.data[user]["exit"] = True
             while len(tdbra.data) > 0:
                 time.sleep(0.4)
-            tdbra.downloadPath.rmdir()
             break
         if command == "":
             continue
@@ -30,7 +29,6 @@ def start():
                 tdbra.data[user]["exit"] = True
             while len(tdbra.data) > 0:
                 time.sleep(0.4)
-            tdbra.downloadPath.rmdir()
             break
         elif command == "status":
             users = []
