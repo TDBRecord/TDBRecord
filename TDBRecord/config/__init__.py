@@ -6,7 +6,7 @@ import json
 from importlib import import_module
 
 DEFAULT_CONFIG = {
-    "version": tdbra.__version__,
+    "version": "",
     "downloadPath": "./download/",
     "ffmpeg": "ffmpeg", # ffmpeg path, if not set, use PATH ffmpeg
     "proxy": "", # proxy url, if not set, use system proxy. e.g. http://proxy.example.com:8080/

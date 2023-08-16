@@ -1,5 +1,3 @@
-__version__ = ""
-
 import TDBRecord.command
 import TDBRecord.m3u8
 import TDBRecord.config
@@ -10,7 +8,7 @@ from streamlink import Streamlink
 from pathlib import Path
 import logging
 
-
+__version__ = ""
 streamlink = Streamlink()
 psession = PromptSession()
 input = psession.prompt
