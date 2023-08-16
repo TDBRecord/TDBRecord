@@ -62,8 +62,7 @@ def check_config(conf: dict = {}):
             raise ValueError("User platform not found in config file")
         if "proxy" not in user:
             user["proxy"] = False
-        if user["proxy"]:
-            proxy = True
+        proxy = user["proxy"]
 
 
     if not conf["downloadPath"]:
@@ -94,10 +93,11 @@ def check_config(conf: dict = {}):
     except FileNotFoundError:
         tdbra.logger.error("ffmpeg not found")
         raise ValueError("ffmpeg not found")
-    
-    if "proxy" in conf:
+
+    if "proxy" in conf and (conf["proxy"] != "" and conf["proxy"] != None):
         conf["proxy"] = conf["proxy"].strip()
         tdbra.m3u8.sessionProxy.set_option("http-proxy", conf["proxy"])
+        tdbra.logger.debug(f"Proxy set to {conf['proxy']}")
     elif proxy:
         tdbra.logger.error("Proxy not found in config file")
         raise ValueError("Proxy not found in config file")

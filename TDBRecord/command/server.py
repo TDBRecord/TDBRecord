@@ -49,9 +49,11 @@ def start():
             if tdbra.logger.level == logging.DEBUG:
                 tdbra.logger.setLevel(logging.INFO)
                 tdbra.logger.info("Debug mode disabled")
+                tdbra.debug = False
             else:
                 tdbra.logger.setLevel(logging.DEBUG)
                 tdbra.logger.info("Debug mode enabled")
+                tdbra.debug = True
         elif command == "help":
             tdbra.logger.info("Available commands: exit, status, users, debug, reload, help")
         else:

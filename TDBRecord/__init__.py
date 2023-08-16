@@ -9,6 +9,7 @@ from pathlib import Path
 import logging
 
 __version__ = ""
+debug = False
 streamlink = Streamlink()
 psession = PromptSession()
 input = psession.prompt

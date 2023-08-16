@@ -30,21 +30,24 @@ def worker(user: str, platform: str) -> None:
     logger.info("FFMPEG Downloader started.")
 
     # Downloader
-    while True:
-        if tdbra.data[f"{user}.{platform}"]["exit"]:
-            logger.info("FFMPEG Downloader stopped.")
-            del(tdbra.data[f"{user}.{platform}"])
-            return
+    m3ud = get(m3uPlaylistUri)
+    if "twitch-ad-quartile" in m3ud.text:
+        while True:
+            if tdbra.data[f"{user}.{platform}"]["exit"]:
+                logger.info("FFMPEG Downloader stopped.")
+                del(tdbra.data[f"{user}.{platform}"])
+                return
 
-        m3ud = get(m3uPlaylistUri)
-        if "twitch-ad-quartile" in m3ud.text:
-            logger.debug("Waiting for AD to record...")
-            time.sleep(2)
-            continue
-        break
+            m3ud = get(m3uPlaylistUri)
+            if "twitch-ad-quartile" in m3ud.text:
+                logger.debug("Waiting for AD to record...")
+                time.sleep(2)
+                continue
+            break
+        logger.info("AD finished. Start recording...")
 
-    logger.info("AD finished. Start recording...")
     tdbra.downloadPath.mkdir(parents=True, exist_ok=True)
+    tdbra.logger.debug(f"Download path: {downloadFullPath}")
     command = [
         tdbra.conf["ffmpeg"],
         "-y",
@@ -55,15 +58,16 @@ def worker(user: str, platform: str) -> None:
         m3uPlaylistUri,
         "-c",
         "copy",
-        downloadFullPath
+        str(downloadFullPath),
     ]
-    if tdbra.conf["users"][user]["proxy"]:
+    if checkProxy(user, platform):
         command.insert(1, "-http_proxy")
         command.insert(2, tdbra.conf["proxy"])
     raw = ""
     for i in command:
         raw += f"{i} "
     logger.debug(f"FFMPEG Downloader command: {raw}")
+    #logger.debug(f"FFMPEG Downloader command as list: {command}")
     
     ffmpeg = Popen(command, stdin=PIPE)
     tdbra.data[f"{user}.{platform}"]["ffmpeg"] = ffmpeg
@@ -94,19 +98,25 @@ def worker(user: str, platform: str) -> None:
     del(tdbra.data[f"{user}.{platform}"])
 
 def stream(user: str, platform: str) -> str:
-    if tdbra.conf["users"][user]["proxy"]:
+    if checkProxy(user, platform):
         return sessionProxy.streams(urlstore[platform].format(user=user))["best"].url
     else:    
         return session.streams(urlstore[platform].format(user=user))["best"].url
 
-
 def checkStatus(user: str, platform: str) -> bool:
     try:
-        if tdbra.conf["users"][user]["proxy"]:
+        if checkProxy(user, platform):
             return bool(sessionProxy.streams(urlstore[platform].format(user=user)))
         else:
             return bool(session.streams(urlstore[platform].format(user=user)))
-        
     except Exception as e:
-        tdbra.logger.error(f"Failed to check status of {user}.{platform}.\nError: {e}")
+        tdbra.logger.error(f"Cannot check status of {user}.{platform}: {e}")
+        if tdbra.debug: raise e
         return False
+
+def checkProxy(user: str, platform: str) -> bool:
+    for i in tdbra.conf["users"]:
+        if i["name"] == user and i["platform"] == platform and i["proxy"]:
+            return True
+
+    return False

@@ -37,7 +37,7 @@ def main():
     pass
 
 @main.command()
-@click.option("--debug", is_flag=True, help="Enable debug mode")
+@click.option("--debug", is_flag=True, help="Enable debug mode", default=False)
 @click.option("--config", type=click.Path(exists=True, file_okay=True, dir_okay=False, path_type=pathlib.Path), help="Config file", default="config.json")
 @click.option("--logfile", type=click.Path(file_okay=True, dir_okay=False, path_type=pathlib.Path), help="Log file", default="record.log")
 def start(debug, config, logfile):
@@ -47,6 +47,7 @@ def start(debug, config, logfile):
     check_update()
 
     tdbra.confPath = config
+    tdbra.debug = debug
     if debug: tdbra.logger.setLevel(logging.DEBUG)
     tdbra.conf = json.loads(tdbra.confPath.read_text())
 
@@ -63,7 +64,7 @@ def start(debug, config, logfile):
     tdbra.command.start()
 
 @main.command()
-@click.option("--debug", is_flag=True, help="Enable debug mode")
+@click.option("--debug", is_flag=True, help="Enable debug mode", default=False)
 @click.option("--proxy", help="Proxy Url", default=None)
 @click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download folder", default="download/")
 @click.option("--ffmpeg", type=str, help="FFmpeg path", default="ffmpeg")
@@ -84,6 +85,7 @@ def record(debug, user, platform, proxy, download_path, ffmpeg):
 
     check_update()
 
+    tdbra.debug = debug
     if debug: tdbra.loglevel = logging.DEBUG
     if proxy: tdbra.conf["proxy"] = proxy
     if ffmpeg: tdbra.conf["ffmpeg"] = ffmpeg
