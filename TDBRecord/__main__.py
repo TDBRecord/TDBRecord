@@ -101,5 +101,7 @@ def config():
     if config.exists():
         print("Config file already exists")
         return
+    tdbra.config.DEFAULT_CONFIG["version"] = __version__
+    
     config.write_text(json.dumps(tdbra.config.DEFAULT_CONFIG, indent=4))
     tdbra.logger.info("Config file generated")
