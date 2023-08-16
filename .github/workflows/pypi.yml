@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-pre*'
+
+jobs:
+  release:
+    name: Release package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+      - name: Install dependencies
+        run: |
+          python3 -m pip install -U pip wheel setuptools
+          python3 -m pip install -U twine build
+      - name: Build
+        run: python3 -m build --sdist --wheel --outdir dist/
+      - name: Publish to pypi
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+      - name: Publish to GitHub Releases
+        uses: ncipollo/release-action@v1
+        # check version includes "pre" to determine if this is a pre-release
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          files: dist/*
+          prerelease: ${{ contains(github.ref, 'pre') }}
