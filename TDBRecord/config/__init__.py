@@ -6,31 +6,45 @@ import json
 from importlib import import_module
 
 DEFAULT_CONFIG = {
-    "remote_streamlink": "", # Remote streamlink server, if not set, use local streamlink e.g. "http://www.example.com/api/get"
+    "version": tdbra.__version__,
     "downloadPath": "./download/",
     "ffmpeg": "ffmpeg", # ffmpeg path, if not set, use PATH ffmpeg
+    "proxy": "", # proxy url, if not set, use system proxy. e.g. http://proxy.example.com:8080/
     "users": [
         {
             "name": "ExampleUser1",
-            "platform": "twitch | afreecatv"
+            "platform": "twitch | afreecatv | youtube",
+            "proxy": True
         },
         {
             "name": "ExampleUser2",
-            "platform": "twitch | afreecatv"
+            "platform": "twitch | afreecatv | youtube",
+            "proxy": False
         }
     ],
 }
 
-PLATFORMS = ["twitch", "afreecatv"]
+PLATFORMS = ["twitch", "afreecatv", "youtube"]
 
 def check_config(conf: dict = {}):
     tdbr = False
+    proxy = False
     if not conf:
         if not tdbra.conf:
             tdbra.logger.error("No config found")
             raise ValueError("No config found")
         conf = tdbra.conf
         tdbr = True
+
+    if not "version" in conf:
+        tdbra.logger.error("Old config file is not compatible with new version. Please delete old config file and run `tdbrec config` to create new config file.")
+        raise ValueError("Old config file is not compatible with new version. Please delete old config file and run `tdbrec config` to create new config file.")
+    elif conf["version"].split(".")[0] != tdbra.__version__.split(".")[0]:
+        tdbra.logger.error("Old config file is not compatible with new version. Please delete old config file and run `tdbrec config` to create new config file.")
+        raise ValueError("Old config file is not compatible with new version. Please delete old config file and run `tdbrec config` to create new config file.")
+    elif conf["version"].split(".")[1] != tdbra.__version__.split(".")[1]:
+        tdbra.logger.warning("Old config file is not compatible with new version. Please run `tdbrec config` to update config file.")
+        tdbra.logger.warning("If you updated to new release, then there may be new config options. Please use `tdbrec config` for new options.")
 
     if not conf["users"]:
         tdbra.logger.error("No user found in config file")
@@ -46,9 +60,10 @@ def check_config(conf: dict = {}):
         if user["platform"] not in PLATFORMS:
             tdbra.logger.error("User platform not found in config file")
             raise ValueError("User platform not found in config file")
-    
-    if not "remote_streamlink" in conf:
-        conf["remote_streamlink"] = ""
+        if "proxy" not in user:
+            user["proxy"] = False
+        if user["proxy"]:
+            proxy = True
 
 
     if not conf["downloadPath"]:
@@ -82,12 +97,19 @@ def check_config(conf: dict = {}):
     
     if "proxy" in conf:
         conf["proxy"] = conf["proxy"].strip()
+        tdbra.m3u8.sessionProxy.set_option("http-proxy", conf["proxy"])
+    elif proxy:
+        tdbra.logger.error("Proxy not found in config file")
+        raise ValueError("Proxy not found in config file")
     else:
         conf["proxy"] = None
+
     
     if tdbr: 
         tdbra.conf = conf
         tdbra.downloadPath = downloadPath
+    
+
     return conf, downloadPath
 
 def reload():

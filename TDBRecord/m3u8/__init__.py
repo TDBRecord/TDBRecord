@@ -7,10 +7,12 @@ from pathlib import Path
 import time
 
 session = Streamlink()
+sessionProxy = Streamlink()
 
 urlstore = {
     "twitch": "https://twitch.tv/{user}",
     "afreecatv": "https://play.afreecatv.com/{user}",
+    "youtube": "https://www.youtube.com/@{user}/live",
 }
 
 def worker(user: str, platform: str) -> None:
@@ -55,7 +57,7 @@ def worker(user: str, platform: str) -> None:
         "copy",
         downloadFullPath
     ]
-    if tdbra.conf["proxy"]:
+    if tdbra.conf["users"][user]["proxy"]:
         command.insert(1, "-http_proxy")
         command.insert(2, tdbra.conf["proxy"])
     raw = ""
@@ -92,19 +94,19 @@ def worker(user: str, platform: str) -> None:
     del(tdbra.data[f"{user}.{platform}"])
 
 def stream(user: str, platform: str) -> str:
-    if tdbra.conf["remote_streamlink"] and platform == "twitch":
-        return get(f"{tdbra.conf['remote_streamlink']}/{user}?quality=best").text
-    else:
+    if tdbra.conf["users"][user]["proxy"]:
+        return sessionProxy.streams(urlstore[platform].format(user=user))["best"].url
+    else:    
         return session.streams(urlstore[platform].format(user=user))["best"].url
 
+
 def checkStatus(user: str, platform: str) -> bool:
-    if tdbra.conf["proxy"]:
-        session.set_option("http-proxy", tdbra.conf["proxy"])
     try:
-        if session.streams(urlstore[platform].format(user=user)):
-            return True
+        if tdbra.conf["users"][user]["proxy"]:
+            return bool(sessionProxy.streams(urlstore[platform].format(user=user)))
         else:
-            return False
-    except:
-        tdbra.logger.error(f"Failed to check status of {user}.{platform}")
+            return bool(session.streams(urlstore[platform].format(user=user)))
+        
+    except Exception as e:
+        tdbra.logger.error(f"Failed to check status of {user}.{platform}.\nError: {e}")
         return False

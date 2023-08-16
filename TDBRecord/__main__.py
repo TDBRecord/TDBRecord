@@ -1,11 +1,32 @@
 import TDBRecord as tdbra
 
+import requests
 import pathlib
 import logging
 import click
 import json
 
-__version__ = "1.1.4"
+__version__ = "1.2.0-pre1"
+tdbra.__version__ = __version__
+
+
+def check_update():
+    # check from pypi
+    try:
+        pypi_version = requests.get("https://pypi.org/pypi/TDBRecord/json").json()["info"]["version"]
+    except:
+        tdbra.logger.error("Cannot check update")
+        return
+    if "pre" in __version__: 
+        tdbra.logger.info("You are using pre-release version. Please check update manually.")
+        tdbra.logger.info("Current version: {version}".format(version=__version__))
+        tdbra.logger.info("Latest version: {version}".format(version=pypi_version))
+    elif pypi_version != __version__:
+        tdbra.logger.info("New version available: {version}".format(version=pypi_version))
+        tdbra.logger.info("Please update TDBRecord by 'pip install TDBRecord --upgrade'")
+    return
+
+
 
 @click.version_option(prog_name="TDBRecord", version=__version__)
 @click.group()
@@ -23,6 +44,8 @@ def start(debug, config, logfile):
     """
     Start TDBRecord server for multiple users.
     """
+    check_update()
+
     tdbra.confPath = config
     if debug: tdbra.logger.setLevel(logging.DEBUG)
     tdbra.conf = json.loads(tdbra.confPath.read_text())
@@ -41,7 +64,7 @@ def start(debug, config, logfile):
 
 @main.command()
 @click.option("--debug", is_flag=True, help="Enable debug mode")
-@click.option("--remote-streamlink", help="Remote streamlink Url", default="")
+@click.option("--proxy", help="Proxy Url", default=None)
 @click.option("--download-path", type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=pathlib.Path), help="Download folder", default="download/")
 @click.option("--ffmpeg", type=str, help="FFmpeg path", default="ffmpeg")
 @click.argument(
@@ -54,13 +77,15 @@ def start(debug, config, logfile):
     type=str,
     required=True,
 )
-def record(debug, user, platform, remote_streamlink, download_path, ffmpeg):
+def record(debug, user, platform, proxy, download_path, ffmpeg):
     """
     Standalone record command. Only record one user.
     """
 
+    check_update()
+
     if debug: tdbra.loglevel = logging.DEBUG
-    if remote_streamlink: tdbra.conf["remote_streamlink"] = remote_streamlink
+    if proxy: tdbra.conf["proxy"] = proxy
     if ffmpeg: tdbra.conf["ffmpeg"] = ffmpeg
     else: tdbra.conf["ffmpeg"] = "ffmpeg"
 
