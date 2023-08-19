@@ -93,7 +93,7 @@ def worker(user: str, platform: str) -> None:
             break
         time.sleep(1)
     if tdbra.gc:
-        tdbra.autocheck(tdbra.ls, user, platform, downloadFullPath, logger)
+        tdbra.autocheck(user, platform, downloadFullPath, logger)
 
     del(tdbra.data[f"{user}.{platform}"])
 

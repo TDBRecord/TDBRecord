@@ -81,8 +81,9 @@ def check_config(conf: dict = {}):
         except ImportError:
             tdbra.logger.error("Cannot import gc module")
             raise ValueError("Cannot import gc module")
+        
         tdbra.gc = gc
-        tdbra.ls = gc.ls(tdbra.logger)
+        tdbra.gc.start()
 
     # check ffmpeg is installed
     try:
