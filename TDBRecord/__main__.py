@@ -6,7 +6,7 @@ import logging
 import click
 import json
 
-__version__ = "1.2.1"
+__version__ = "1.2.2-pre1"
 tdbra.__version__ = __version__
 
 
