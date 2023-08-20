@@ -3,6 +3,7 @@ import TDBRecord as tdbra
 from threading import Thread
 import logging
 import time
+import code
 
 def start():
     tdbra.logger.debug("TDBRecord Main function started!")
@@ -54,6 +55,8 @@ def start():
                 tdbra.logger.setLevel(logging.DEBUG)
                 tdbra.logger.info("Debug mode enabled")
                 tdbra.debug = True
+        elif command == "python":
+            code.interact(local=locals())
         elif command == "help":
             tdbra.logger.info("Available commands: exit, status, users, debug, reload, help")
         else:
