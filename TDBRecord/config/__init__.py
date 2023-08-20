@@ -3,7 +3,8 @@ import TDBRecord as tdbra
 import pathlib
 import subprocess
 import json
-from importlib import import_module
+from importlib.machinery import SourceFileLoader
+
 
 DEFAULT_CONFIG = {
     "version": "",
@@ -77,7 +78,12 @@ def check_config(conf: dict = {}):
     
     if "gc" in conf:
         try:
-            gc = import_module(conf["gc"])
+            gcPath = pathlib.Path(conf["gc"])
+            if not gcPath.exists():
+                tdbra.logger.error("gc file not found")
+                raise ValueError("gc file not found")
+            gc = SourceFileLoader("gc", str(gcPath.resolve())).load_module()
+
         except ImportError:
             tdbra.logger.error("Cannot import gc module")
             raise ValueError("Cannot import gc module")
